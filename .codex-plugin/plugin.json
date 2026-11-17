@@ -1,0 +1,16 @@
+{
+  "name": "codex-swarm",
+  "version": "0.1.0",
+  "description": "Coordinate parallel Codex workers with a shared Swarm board and event replay.",
+  "author": { "name": "tostoyefski", "url": "https://github.com/tostoyefski" },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "Codex Swarm",
+    "shortDescription": "Run and monitor teams of parallel Codex workers",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": ["$codex-swarm:swarm Split this task, dispatch Codex workers, and verify their results."]
+  }
+}

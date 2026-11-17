@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Swarm Board</title>
+  <link rel="stylesheet" href="board.css">
+  <script src="board.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="masthead-top">
+        <div class="brand"><span class="swarm-mark" aria-hidden="true"></span>Swarm</div>
+        <div id="connection" class="connection" data-state="connecting" role="status">
+          <span class="status-dot" aria-hidden="true"></span><span id="connection-label">Connecting</span>
+        </div>
+      </div>
+      <div id="run-header" class="run-header" hidden>
+        <div class="run-heading">
+          <h1 id="run-title"></h1>
+          <select id="run-picker" aria-label="Switch swarm run" title="Switch swarm run"></select>
+        </div>
+        <div class="run-details">
+          <span id="run-state" class="pill"></span>
+          <span id="run-summary"></span>
+          <span id="run-path"></span>
+        </div>
+        <div id="run-controls" class="run-controls" hidden>
+          <div id="run-actions" class="run-actions">
+            <button type="button" id="pause-resume" class="button compact">Pause</button>
+            <button type="button" id="stop-run" class="button compact">Stop</button>
+          </div>
+          <div id="confirm-stop" class="run-actions" hidden>
+            <span>Stop this swarm permanently?</span>
+            <button type="button" id="cancel-stop" class="button compact">Cancel</button>
+            <button type="button" id="confirm-stop-run" class="button compact danger">Stop swarm</button>
+          </div>
+          <p id="run-control-error" class="inline-error" role="alert" hidden></p>
+        </div>
+      </div>
+      <nav id="tabbar" class="tabs" role="tablist" aria-label="Swarm views" hidden>
+        <button type="button" id="tab-board" role="tab" aria-controls="view-board" aria-selected="true" data-tab="board">Board <span id="post-count"></span></button>
+        <button type="button" id="tab-members" role="tab" aria-controls="view-members" aria-selected="false" data-tab="members" tabindex="-1">Members <span id="member-count"></span></button>
+        <button type="button" id="tab-graph" role="tab" aria-controls="view-graph" aria-selected="false" data-tab="graph" tabindex="-1">Graph</button>
+        <button type="button" id="tab-private" role="tab" aria-controls="view-private" aria-selected="false" data-tab="private" tabindex="-1">Private</button>
+      </nav>
+    </header>
+    <p id="connection-error" class="banner" role="alert" hidden></p>
+    <main class="main">
+      <section id="waiting" class="empty main-empty">
+        <div class="empty-mark swarm-mark" aria-hidden="true"></div>
+        <h1 id="waiting-title">No swarm yet</h1>
+        <p id="waiting-text">Start a run with <code>$swarm</code> in Codex.</p>
+      </section>
+      <section class="view board-view" id="view-board" role="tabpanel" aria-labelledby="tab-board" hidden>
+        <div class="toolbar">
+          <label class="search">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input id="post-search" type="search" placeholder="Search messages" aria-label="Search messages" autocomplete="off">
+          </label>
+          <button type="button" id="filter-toggle" class="button compact" aria-controls="board-filters" aria-expanded="false">Filters</button>
+          <label class="check"><input id="follow" type="checkbox" checked> Follow</label>
+        </div>
+        <div class="filters" id="board-filters" hidden>
+          <select id="sender-filter" aria-label="Filter by sender"><option value="">All senders</option></select>
+          <select id="recipient-filter" aria-label="Filter by recipient"><option value="">All recipients</option></select>
+        </div>
+        <div class="feed-wrap">
+          <div class="feed" id="feed" role="log" aria-label="Board messages" aria-live="polite" tabindex="0"></div>
+          <button type="button" id="jump-latest" class="button jump" hidden>↓ Latest</button>
+        </div>
+        <form id="compose" class="compose">
+          <div class="compose-field">
+            <label for="message" class="sr-only">Message</label>
+            <textarea id="message" rows="2" maxlength="12000" placeholder="Message the board. Type @ to mention a member." autocomplete="off"></textarea>
+            <div id="suggestions" class="suggestions" role="listbox" aria-label="Mention suggestions" hidden></div>
+          </div>
+          <div class="compose-actions">
+            <span class="grow"></span>
+            <button type="submit" id="send-message" class="button primary" disabled>Send</button>
+          </div>
+          <p id="send-error" class="inline-error" role="alert" hidden></p>
+        </form>
+      </section>
+      <section class="view members-view" id="view-members" role="tabpanel" aria-labelledby="tab-members" hidden>
+        <div class="toolbar">
+          <label class="search">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input id="member-search" type="search" placeholder="Search members" aria-label="Search members" autocomplete="off">
+          </label>
+        </div>
+        <div class="scroll-panel" id="member-list"></div>
+      </section>
+      <section class="view graph-view" id="view-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
+        <div class="replay">
+          <div class="replay-controls">
+            <button type="button" class="button compact" id="step-back" aria-label="Previous post" title="Previous post">←</button>
+            <button type="button" class="button compact" id="playback">Play</button>
+            <button type="button" class="button compact" id="step-forward" aria-label="Next post" title="Next post">→</button>
+            <select id="playback-speed" aria-label="Replay speed"><option>0.5×</option><option selected>1×</option><option>2×</option><option>4×</option></select>
+            <span class="grow"></span>
+            <button type="button" class="button compact" id="live-graph" aria-pressed="true">Live</button>
+          </div>
+          <div class="replay-track">
+            <label for="replay-position" class="sr-only">Replay position</label>
+            <input id="replay-position" type="range" min="0" max="0" value="0" step="1">
+            <output id="replay-count" for="replay-position">0 / 0</output>
+          </div>
+          <label class="check"><input id="expand-all" type="checkbox"> Expand @all</label>
+        </div>
+        <div class="scroll-panel graph-scroller">
+          <div id="graph" class="graph"></div>
+          <p id="graph-caption" class="graph-caption"></p>
+          <div id="replay-message"></div>
+        </div>
+      </section>
+      <section class="view private-view" id="view-private" role="tabpanel" aria-labelledby="tab-private" hidden>
+        <div class="toolbar private-toolbar">
+          <label for="private-target">Conversation with</label>
+          <select id="private-target" aria-label="Private message recipient"></select>
+        </div>
+        <div class="feed" id="private-feed" role="log" aria-label="Private messages" aria-live="polite" tabindex="0"></div>
+        <form id="private-compose" class="compose">
+          <label for="private-message" class="sr-only">Private message</label>
+          <textarea id="private-message" rows="2" maxlength="12000" placeholder="Send a private message to this member." autocomplete="off"></textarea>
+          <div class="compose-actions">
+            <span class="grow"></span>
+            <button type="submit" id="send-private" class="button primary" disabled>Send privately</button>
+          </div>
+          <p id="private-send-error" class="inline-error" role="alert" hidden></p>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

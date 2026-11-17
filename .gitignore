@@ -1,0 +1,17 @@
+.DS_Store
+node_modules/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.codex/
+.swarm/
+workspaces/
+*.pem
+*.key
+auth.json
